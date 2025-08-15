@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load the dataset (adjust path as needed)
-df = pd.read_csv('amazon_products.csv')# Basic cleaning
+df = pd.read_csv('amazon.csv')# Basic cleaning
 df = df.dropna(subset=['customer_id', 'product_category'])
 df = df[df['customer_id'] != 'unknown']
 

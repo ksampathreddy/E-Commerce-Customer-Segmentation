@@ -23,10 +23,15 @@ if not all(col in df.columns for col in required_cols):
     missing = [col for col in required_cols if col not in df.columns]
     raise ValueError(f"Missing required columns: {missing}")
 
+print("\nChecking missing values before cleaning:")
+print(df[['Brand Name', 'Category', 'Quantity']].isnull().sum())
+print(df[['Brand Name', 'Category', 'Quantity']].head(20))
+
 # Clean data
 df = df.dropna(subset=['Brand Name', 'Category', 'Quantity'])
-df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce').fillna(0)
+df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce').fillna(1)
 df['Primary_Category'] = df['Category'].str.split('|').str[0].str.strip()
+
 
 # 2. Create brand-category matrix
 print("\nCreating brand-category matrix...")

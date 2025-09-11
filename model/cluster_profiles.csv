@@ -1,0 +1,5 @@
+cluster,size,size_percentage,avg_total_spend,avg_transaction_value,avg_purchase_count,avg_quantity,avg_price,top_category,description
+0,2336,94.8%,80.56559503424657,29.916553938356166,2.968321917808219,1.0,29.916553938356166,Toys & Games,Budget occasional shoppers
+1,23,0.9%,2161.1899999999996,29.766521739130436,82.65217391304348,1.0,29.766521739130436,Toys & Games,Medium-value frequent shoppers
+2,104,4.2%,790.5134615384615,333.30596153846153,4.288461538461538,1.0,333.30596153846153,Toys & Games,Budget occasional shoppers
+3,1,0.0%,5318.59,26.2,203.0,1.0,26.2,"Clothing, Shoes & Jewelry",High-value frequent shoppers

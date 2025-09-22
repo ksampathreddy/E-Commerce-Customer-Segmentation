@@ -25,27 +25,22 @@ Machine Learning: K-Means clustering, PCA for dimensionality reduction
 Data Processing: Pandas for data manipulation and feature engineering
 
 # Installation
-Clone the repository
+1. Clone the repository
+    ```bash
+    git clone <repository-url>
+    cd E-Commerce-Customer-Segmentation
 
-```bash
-git clone <repository-url>
-cd E-Commerce-Customer-Segmentation
+2. Create a virtual environment
+    ````bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-Create a virtual environment
+3. Install dependencies
+    ```bash
+    pip install -r requirements.txt
 
-````bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-Install dependencies
-
-```bash
-pip install -r requirements.txt
-
-Prepare your data
-
-Place your Amazon dataset in the data/ directory
-
-Run thw web app
-```bash
-python app.py
+4. Prepare your data
+  Place your Amazon dataset in the data/ directory
+  Run the web app
+    ```bash
+    python app.py

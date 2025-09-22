@@ -27,7 +27,8 @@ Data Processing: Pandas for data manipulation and feature engineering
 # Installation
 Clone the repository
 
-``bash
+bash
+``
 git clone <repository-url>
 cd E-Commerce-Customer-Segmentation
 ``

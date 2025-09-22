@@ -27,27 +27,25 @@ Data Processing: Pandas for data manipulation and feature engineering
 # Installation
 Clone the repository
 
-bash
-``
+```bash
 git clone <repository-url>
 cd E-Commerce-Customer-Segmentation
-``
+
 Create a virtual environment
 
-``bash
+````bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-``
+
 Install dependencies
 
-``bash
+```bash
 pip install -r requirements.txt
-``
+
 Prepare your data
 
 Place your Amazon dataset in the data/ directory
 
 Run thw web app
-``bash
+```bash
 python app.py
-``

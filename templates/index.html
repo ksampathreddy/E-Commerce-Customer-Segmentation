@@ -2,82 +2,46 @@
 
 {% block content %}
 <div class="card">
-    <h2><i class="fas fa-calculator"></i> Customer Segmentation Analysis</h2>
-    <p>Enter customer purchase behavior to identify their segment and get personalized insights.</p>
-
-    <form id="prediction-form" action="{{ url_for('predict') }}" method="post">
-        <div class="form-grid">
-            <div class="form-group">
-                <label for="total_spend"><i class="fas fa-money-bill-wave"></i> Total Spending ($)</label>
-                <input type="number" id="total_spend" name="Total_Spend_Sum" step="0.01" required placeholder="1000.00">
-            </div>
-
-            <div class="form-group">
-                <label for="avg_spend"><i class="fas fa-chart-line"></i> Average Transaction Value ($)</label>
-                <input type="number" id="avg_spend" name="Total_Spend_Mean" step="0.01" required placeholder="50.00">
-            </div>
-
-            <div class="form-group">
-                <label for="purchase_count"><i class="fas fa-shopping-cart"></i> Number of Purchases</label>
-                <input type="number" id="purchase_count" name="Purchase_Count" required placeholder="10">
-            </div>
-
-            <div class="form-group">
-                <label for="quantity"><i class="fas fa-boxes"></i> Total Items Purchased</label>
-                <input type="number" id="quantity" name="Quantity_Sum" required placeholder="25">
-            </div>
-
-            <div class="form-group">
-                <label for="price"><i class="fas fa-tag"></i> Average Item Price ($)</label>
-                <input type="number" id="price" name="Price_Mean" step="0.01" required placeholder="40.00">
-            </div>
-
-            <div class="form-group">
-                <label for="category_diversity"><i class="fas fa-layer-group"></i> Category Diversity</label>
-                <input type="number" id="category_diversity" name="Category_Diversity" min="1" max="20" required placeholder="3">
-            </div>
-        </div>
-
-        <button type="submit" class="btn">
-            <i class="fas fa-magic"></i> Analyze Customer Segment
-        </button>
-    </form>
-</div>
-
-<div class="card">
-    <h3><i class="fas fa-lightbulb"></i> How it Works</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-        <div>
-            <h4><i class="fas fa-1"></i> Data Collection</h4>
-            <p>We analyze purchase history, spending patterns, and category preferences from Amazon data.</p>
-        </div>
-        <div>
-            <h4><i class="fas fa-2"></i> Machine Learning</h4>
-            <p>Advanced clustering algorithms identify natural customer segments based on behavior patterns.</p>
-        </div>
-        <div>
-            <h4><i class="fas fa-3"></i> Actionable Insights</h4>
-            <p>Get personalized recommendations and marketing strategies for each customer segment.</p>
-        </div>
+    <h2><i class="fas fa-chart-pie"></i> Amazon Customer Segmentation</h2>
+    
+    {% if models_loaded %}
+    <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <i class="fas fa-check-circle"></i> <strong>Models loaded successfully!</strong> You can now use all features.
+    </div>
+    {% else %}
+    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <i class="fas fa-exclamation-triangle"></i> <strong>Models not loaded.</strong> Please run the training script first.
+    </div>
+    {% endif %}
+    
+    <p>This application uses machine learning to segment customers based on their purchasing behavior.</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;">
+        <a href="{{ url_for('predict') }}" class="btn" style="text-align: center;">
+            <i class="fas fa-calculator"></i><br>
+            Predict Segment
+        </a>
+        
+        <a href="{{ url_for('dashboard') }}" class="btn" style="text-align: center;">
+            <i class="fas fa-dashboard"></i><br>
+            View Dashboard
+        </a>
+        
+        <a href="{{ url_for('clusters_overview') }}" class="btn" style="text-align: center;">
+            <i class="fas fa-users"></i><br>
+            Cluster Overview
+        </a>
     </div>
 </div>
 
 <div class="card">
-    <h3><i class="fas fa-rocket"></i> Quick Start</h3>
-    <p>Try these example customer profiles:</p>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
-        <div style="background: #f1f5f9; padding: 15px; border-radius: 10px;">
-            <h5>Budget Shopper</h5>
-            <p>Total Spend: $500<br>Purchases: 15<br>Categories: 3</p>
-        </div>
-        <div style="background: #f1f5f9; padding: 15px; border-radius: 10px;">
-            <h5>Premium Customer</h5>
-            <p>Total Spend: $15,000<br>Purchases: 8<br>Categories: 2</p>
-        </div>
-        <div style="background: #f1f5f9; padding: 15px; border-radius: 10px;">
-            <h5>Frequent Buyer</h5>
-            <p>Total Spend: $3,000<br>Purchases: 45<br>Categories: 8</p>
-        </div>
-    </div>
+    <h3><i class="fas fa-info-circle"></i> Getting Started</h3>
+    
+    <ol style="line-height: 2;">
+        <li><strong>Train the model:</strong> Run <code>python train_models.py</code> in your terminal</li>
+        <li><strong>Start the server:</strong> Run <code>python app.py</code></li>
+        <li><strong>Access the application:</strong> Open <code>http://localhost:5000</code> in your browser</li>
+        <li><strong>Use the features:</strong> Navigate using the menu above</li>
+    </ol>
 </div>
 {% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2><i class="fas fa-calculator"></i> Customer Segmentation Analysis</h2>
+    <p>Enter customer purchase behavior to identify their segment and get personalized insights.</p>
+
+    <form id="prediction-form" action="{{ url_for('predict') }}" method="post">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="total_spend"><i class="fas fa-money-bill-wave"></i> Total Spending ($)</label>
+                <input type="number" id="total_spend" name="Total_Spend_Sum" step="0.01" required placeholder="1000.00">
+            </div>
+
+            <div class="form-group">
+                <label for="avg_spend"><i class="fas fa-chart-line"></i> Average Transaction Value ($)</label>
+                <input type="number" id="avg_spend" name="Total_Spend_Mean" step="0.01" required placeholder="50.00">
+            </div>
+
+            <div class="form-group">
+                <label for="purchase_count"><i class="fas fa-shopping-cart"></i> Number of Purchases</label>
+                <input type="number" id="purchase_count" name="Purchase_Count" required placeholder="10">
+            </div>
+
+            <div class="form-group">
+                <label for="quantity"><i class="fas fa-boxes"></i> Total Items Purchased</label>
+                <input type="number" id="quantity" name="Quantity_Sum" required placeholder="25">
+            </div>
+
+            <div class="form-group">
+                <label for="price"><i class="fas fa-tag"></i> Average Item Price ($)</label>
+                <input type="number" id="price" name="Price_Mean" step="0.01" required placeholder="40.00">
+            </div>
+
+            <div class="form-group">
+                <label for="category_diversity"><i class="fas fa-layer-group"></i> Category Diversity</label>
+                <input type="number" id="category_diversity" name="Category_Diversity" min="1" max="20" required placeholder="3">
+            </div>
+        </div>
+
+        <button type="submit" class="btn">
+            <i class="fas fa-magic"></i> Analyze Customer Segment
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <h3><i class="fas fa-lightbulb"></i> How it Works</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <div>
+            <h4><i class="fas fa-1"></i> Data Collection</h4>
+            <p>We analyze purchase history, spending patterns, and category preferences from Amazon data.</p>
+        </div>
+        <div>
+            <h4><i class="fas fa-2"></i> Machine Learning</h4>
+            <p>Advanced clustering algorithms identify natural customer segments based on behavior patterns.</p>
+        </div>
+        <div>
+            <h4><i class="fas fa-3"></i> Actionable Insights</h4>
+            <p>Get personalized recommendations and marketing strategies for each customer segment.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,15 +2,10 @@ from flask import Flask, render_template, request, jsonify, send_file
 import pickle
 import pandas as pd
 import numpy as np
-import json
 import os
-from config import Config
-import plotly
-import plotly.express as px
 from datetime import datetime
 
 app = Flask(__name__)
-app.config.from_object(Config)
 
 # Global variables for loaded models
 models = {}
@@ -29,8 +24,7 @@ def load_models():
             'model/cluster_model.pkl',
             'model/scaler.pkl', 
             'model/feature_columns.pkl',
-            'model/cluster_profiles.csv',
-            'model/clustered_data.csv'
+            'model/cluster_profiles.csv'
         ]
         
         missing_files = []
@@ -40,31 +34,17 @@ def load_models():
         
         if missing_files:
             print(f"❌ Missing required files: {missing_files}")
-            print("💡 Please run 'python train_models.py' first to generate model files")
             return False
         
-        # Load models
+        # Load models and data
         models['cluster'] = pickle.load(open('model/cluster_model.pkl', 'rb'))
         models['scaler'] = pickle.load(open('model/scaler.pkl', 'rb'))
         models['features'] = pickle.load(open('model/feature_columns.pkl', 'rb'))
-        
-        # Load data
         cluster_profiles = pd.read_csv('model/cluster_profiles.csv')
-        clustered_data = pd.read_csv('model/clustered_data.csv', index_col=0)
-        
-        # Load cluster descriptions (optional)
-        try:
-            with open('model/cluster_descriptions.json', 'r') as f:
-                models['descriptions'] = json.load(f)
-        except FileNotFoundError:
-            models['descriptions'] = {}
-            print("⚠️  Cluster descriptions file not found, continuing without it")
         
         models_loaded = True
         print("✅ Models loaded successfully!")
-        print(f"   - Clusters: {len(cluster_profiles)}")
-        print(f"   - Features: {len(models['features'])}")
-        print(f"   - Data points: {len(clustered_data)}")
+        print(f"📊 Available features: {models['features']}")
         return True
         
     except Exception as e:
@@ -82,69 +62,101 @@ def home():
     """Main page"""
     return render_template('index.html', models_loaded=models_loaded)
 
+# FIX: Added GET method to display the form
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
-    """Predict cluster for input data"""
+    """Predict cluster for input data - handles both GET (form) and POST (submission)"""
     if not models_loaded:
-        return render_template('error.html', 
-                             error="Models not loaded. Please run 'python train_models.py' first to train the model.")
+        return render_template('error.html', error="Models not loaded. Please run 'python train_models.py' first.")
     
+    # Handle GET request - show the prediction form
     if request.method == 'GET':
-        # Show the prediction form
         return render_template('predict.html', models_loaded=models_loaded)
     
+    # Handle POST request - process the form data
     try:
-        # Get form data
-        input_data = {}
-        for feature in models['features']:
-            if feature in request.form:
-                input_data[feature] = float(request.form.get(feature, 0))
+        # Get form data with default values
+        input_data = {
+            'Total_Spend_Sum': float(request.form.get('Total_Spend_Sum', 0)),
+            'Total_Spend_Mean': float(request.form.get('Total_Spend_Mean', 0)),
+            'Purchase_Count': float(request.form.get('Purchase_Count', 0)),
+            'Quantity_Sum': float(request.form.get('Quantity_Sum', 0)),
+            'Price_Mean': float(request.form.get('Price_Mean', 0)),
+            'Category_Diversity': float(request.form.get('Category_Diversity', 1))
+        }
+        
+        print(f"📨 Received input data: {input_data}")
         
         # Create feature vector
         feature_vector = np.zeros(len(models['features']))
         for i, feature in enumerate(models['features']):
             feature_vector[i] = input_data.get(feature, 0)
         
+        print(f"🔢 Feature vector: {feature_vector}")
+        
         # Scale and predict
         scaled_data = models['scaler'].transform([feature_vector])
         cluster = int(models['cluster'].predict(scaled_data)[0])
         
-        # Get cluster profile
-        profile = cluster_profiles[cluster_profiles['cluster'] == cluster].iloc[0].to_dict()
+        print(f"🎯 Predicted cluster: {cluster}")
+        
+        # Get cluster profile with SAFE field access
+        profile_row = cluster_profiles[cluster_profiles['cluster'] == cluster].iloc[0]
+        profile = profile_row.to_dict()
+        
+        # Use .get() with default values to prevent KeyError
+        safe_profile = {
+            'cluster': profile.get('cluster', cluster),
+            'size': profile.get('size', 0),
+            'size_percentage': profile.get('size_percentage', '0%'),
+            'avg_total_spend': profile.get('avg_total_spend', 0),
+            'avg_transaction_value': profile.get('avg_transaction_value', 0),
+            'avg_purchase_count': profile.get('avg_purchase_count', 0),
+            'avg_quantity': profile.get('avg_quantity', 0),
+            'avg_price': profile.get('avg_price', 0),
+            'avg_category_diversity': profile.get('avg_category_diversity', profile.get('Category_Diversity', 1)),
+            'top_category': profile.get('top_category', 'Unknown'),
+            'description': profile.get('description', 'No description available')
+        }
+        
+        print(f"📊 Profile data: {safe_profile}")
         
         return render_template('results.html', 
                              cluster=cluster,
-                             profile=profile,
+                             profile=safe_profile,
                              input_data=input_data,
-                             cluster_colors=Config.CLUSTER_COLORS,
                              models_loaded=models_loaded)
     
     except Exception as e:
+        print(f"❌ Prediction error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return render_template('error.html', error=f"Prediction error: {str(e)}")
 
 @app.route('/dashboard')
 def dashboard():
     """Interactive dashboard"""
     if not models_loaded:
-        return render_template('error.html', 
-                             error="Models not loaded. Please run 'python train_models.py' first.")
+        return render_template('error.html', error="Models not loaded. Please run 'python train_models.py' first.")
     
     try:
-        # Check if visualization files exist
-        viz_files = {
-            'pca_plot': 'static/images/pca_plot.png',
-            'cluster_sizes': 'static/images/cluster_sizes.png'
-        }
+        # Prepare safe cluster profiles
+        safe_profiles = []
+        for profile in cluster_profiles.to_dict('records'):
+            safe_profile = {
+                'cluster': profile.get('cluster', 0),
+                'size': profile.get('size', 0),
+                'size_percentage': profile.get('size_percentage', '0%'),
+                'avg_total_spend': profile.get('avg_total_spend', 0),
+                'avg_purchase_count': profile.get('avg_purchase_count', 0),
+                'avg_category_diversity': profile.get('avg_category_diversity', 1),
+                'description': profile.get('description', 'No description available'),
+                'top_category': profile.get('top_category', 'Unknown')
+            }
+            safe_profiles.append(safe_profile)
         
-        # Check which visualization files exist
-        available_viz = {}
-        for name, path in viz_files.items():
-            available_viz[name] = os.path.exists(path)
-        
-        return render_template('dashboard.html',
-                             cluster_profiles=cluster_profiles.to_dict('records'),
-                             cluster_colors=Config.CLUSTER_COLORS,
-                             available_viz=available_viz,
+        return render_template('dashboard.html', 
+                             cluster_profiles=safe_profiles,
                              models_loaded=models_loaded)
     
     except Exception as e:
@@ -154,28 +166,42 @@ def dashboard():
 def clusters_overview():
     """Cluster overview page"""
     if not models_loaded:
-        return render_template('error.html', 
-                             error="Models not loaded. Please run 'python train_models.py' first.")
+        return render_template('error.html', error="Models not loaded. Please run 'python train_models.py' first.")
     
     try:
-        return render_template('clusters.html',
-                             clusters=cluster_profiles.to_dict('records'),
-                             cluster_colors=Config.CLUSTER_COLORS,
+        safe_profiles = []
+        for profile in cluster_profiles.to_dict('records'):
+            safe_profile = {
+                'cluster': profile.get('cluster', 0),
+                'size': profile.get('size', 0),
+                'size_percentage': profile.get('size_percentage', '0%'),
+                'avg_total_spend': profile.get('avg_total_spend', 0),
+                'avg_purchase_count': profile.get('avg_purchase_count', 0),
+                'avg_category_diversity': profile.get('avg_category_diversity', 1),
+                'top_category': profile.get('top_category', 'Unknown'),
+                'description': profile.get('description', 'No description available')
+            }
+            safe_profiles.append(safe_profile)
+        
+        return render_template('clusters.html', 
+                             clusters=safe_profiles,
                              models_loaded=models_loaded)
+    
     except Exception as e:
         return render_template('error.html', error=f"Clusters page error: {str(e)}")
 
-@app.route('/api/clusters')
-def api_clusters():
-    """API endpoint for cluster data"""
+@app.route('/download/cluster_data')
+def download_cluster_data():
+    """Download clustered data as CSV"""
     if not models_loaded:
-        return jsonify({'error': 'Models not loaded'}), 503
+        return render_template('error.html', error="Models not loaded.")
     
     try:
-        clustered_data = pd.read_csv('model/clustered_data.csv')
-        return jsonify(clustered_data.to_dict('records'))
+        return send_file('model/clustered_data.csv',
+                        as_attachment=True,
+                        download_name='customer_segments.csv')
     except Exception as e:
-        return jsonify({'error': str(e)}), 404
+        return render_template('error.html', error=f"Download error: {str(e)}")
 
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
@@ -195,7 +221,8 @@ def api_predict():
         
         scaled_data = models['scaler'].transform([feature_vector])
         cluster = int(models['cluster'].predict(scaled_data)[0])
-        profile = cluster_profiles[cluster_profiles['cluster'] == cluster].iloc[0].to_dict()
+        profile_row = cluster_profiles[cluster_profiles['cluster'] == cluster].iloc[0]
+        profile = profile_row.to_dict()
         
         return jsonify({
             'cluster': cluster,
@@ -206,38 +233,16 @@ def api_predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/download/cluster_data')
-def download_cluster_data():
-    """Download clustered data as CSV"""
-    if not models_loaded:
-        return render_template('error.html', error="Models not loaded")
-    
-    try:
-        return send_file('model/clustered_data.csv',
-                        as_attachment=True,
-                        download_name='customer_segments.csv',
-                        mimetype='text/csv')
-    except Exception as e:
-        return render_template('error.html', error=f"Download error: {str(e)}")
-
-@app.route('/reload_models')
-def reload_models():
-    """Force reload models (for debugging)"""
-    global models_loaded
-    models_loaded = load_models()
-    if models_loaded:
-        return jsonify({'status': 'success', 'message': 'Models reloaded successfully'})
-    else:
-        return jsonify({'status': 'error', 'message': 'Failed to reload models'})
-
 if __name__ == '__main__':
-    print("\n🌐 Starting Flask server...")
-    print("📊 Available routes:")
-    print("   - http://localhost:5000/ (Home)")
-    print("   - http://localhost:5000/predict (Customer Prediction)")
-    print("   - http://localhost:5000/dashboard (Analytics Dashboard)")
-    print("   - http://localhost:5000/clusters (Cluster Overview)")
-    print("   - http://localhost:5000/reload_models (Reload Models)")
-    print("\n⚡ Server is running! Press Ctrl+C to stop.")
+    print("\n🌐 Flask Server Starting...")
+    print("📊 Available Routes:")
+    print("   GET  /                      - Home page")
+    print("   GET  /predict               - Prediction form")
+    print("   POST /predict               - Process prediction")
+    print("   GET  /dashboard             - Analytics dashboard")
+    print("   GET  /clusters              - Cluster overview")
+    print("   GET  /download/cluster_data - Download data")
+    print("   POST /api/predict           - JSON API")
+    print("\n⚡ Starting server on http://localhost:5000")
     
     app.run(debug=True, host='0.0.0.0', port=5000)

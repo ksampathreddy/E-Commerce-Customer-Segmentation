@@ -4,6 +4,14 @@
 <div class="card">
     <h2><i class="fas fa-users"></i> Customer Segments Overview</h2>
     <p>Detailed analysis of all customer segments identified by our machine learning model</p>
+    
+    {% if not clusters %}
+    <div style="background: #fef2f2; padding: 20px; border-radius: 10px; margin-top: 20px;">
+        <h3 style="color: #dc2625;"><i class="fas fa-exclamation-triangle"></i> No Cluster Data Available</h3>
+        <p>Please run the training script first to generate customer segments.</p>
+        <a href="{{ url_for('home') }}" class="btn">Go to Home</a>
+    </div>
+    {% endif %}
 </div>
 
 {% for cluster in clusters %}
@@ -20,29 +28,44 @@
 
     <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
         <h4><i class="fas fa-info-circle"></i> Segment Description</h4>
-        <p style="font-size: 1.1rem; margin: 0;">{{ cluster.description }}</p>
+        <p style="font-size: 1.1rem; margin: 0;">
+            {{ cluster.description | default('No description available') }}
+        </p>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
         <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #4ECDC4;">
             <h5>Spending Behavior</h5>
-            <p>Avg Total: ${{ "%.2f"|format(cluster.avg_total_spend) }}</p>
-            <p>Avg Transaction: ${{ "%.2f"|format(cluster.avg_transaction_value) }}</p>
+            <p>Avg Total: ${{ "%.2f"|format(cluster.avg_total_spend | default(0)) }}</p>
+            <p>Avg Transaction: ${{ "%.2f"|format(cluster.avg_transaction_value | default(0)) }}</p>
         </div>
         <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #4ECDC4;">
             <h5>Purchase Patterns</h5>
-            <p>Avg Purchases: {{ cluster.avg_purchase_count|int }}</p>
-            <p>Avg Quantity: {{ cluster.avg_quantity|int }}</p>
+            <p>Avg Purchases: {{ cluster.avg_purchase_count | default(0) | int }}</p>
+            <p>Avg Quantity: {{ cluster.avg_quantity | default(0) | int }}</p>
         </div>
         <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #4ECDC4;">
             <h5>Category Behavior</h5>
-            <p>Diversity: {{ cluster.avg_category_diversity|int }} categories</p>
-            <p>Top Category: {{ cluster.top_category }}</p>
+            <p>Diversity: {{ cluster.avg_category_diversity | default(1) | int }} categories</p>
+            <p>Top Category: {{ cluster.top_category | default('Unknown') }}</p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div style="text-align: center; padding: 40px;">
+        <i class="fas fa-users-slash" style="font-size: 4rem; color: #94a3b8; margin-bottom: 20px;"></i>
+        <h3>No Customer Segments Found</h3>
+        <p>It looks like no customer segments have been created yet.</p>
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('home') }}" class="btn">Go to Home</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Check Dashboard</a>
         </div>
     </div>
 </div>
 {% endfor %}
 
+{% if clusters %}
 <div class="card">
     <h3><i class="fas fa-lightbulb"></i> Strategic Insights</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
@@ -60,4 +83,5 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
